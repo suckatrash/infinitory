@@ -1,13 +1,13 @@
 import setuptools
 
 setuptools.setup(
-    name = "sreinventory",
+    name = "infinitory",
     version = "0.0.1",
 
     description = "SRE host, role, and service inventory",
     author = "Daniel Parks",
     author_email = "daniel.parks@puppet.com",
-    url = "http://github.com/puppetlabs/sreinventory",
+    url = "http://github.com/puppetlabs/infinitory",
     long_description = open("README.rst").read(),
 
     classifiers = [
@@ -18,7 +18,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
     ],
 
-    packages = [ "sreinventory" ],
+    packages = [ "infinitory" ],
     install_requires = [
         "click",
         "Jinja2",
@@ -30,7 +30,7 @@ setuptools.setup(
     include_package_data = True,
     entry_points = {
         "console_scripts": [
-            "sreinventory = sreinventory.cli:main"
+            "infinitory = infinitory.cli:main"
         ]
     }
 )

@@ -15,8 +15,8 @@ import socket
 import shutil
 import sys
 
-from sreinventory import cellformatter
-from sreinventory.inventory import Inventory
+from infinitory import cellformatter
+from infinitory.inventory import Inventory
 from simplepup import puppetdb
 
 
