@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block title %}Service inventory{% endblock %}
+{% block body %}
+  <h1>Service inventory</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Nodes</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for service in services %}
+      <tr id="{{ service }}">
+        <th>
+          <a href="./{{ service["class_name"] }}.html">{{ service["human_name"] }}</a>
+        </th>
+        <td>
+          <ul>
+          {% for node in service["nodes"] | sort(attribute="facts.fqdn") %}
+            <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block title %}Node inventory{% endblock %}
+{% block body %}
+  <h1>Node inventory</h1>
+  <table>
+    <thead>
+      <tr>
+      {% for cell in columns %}
+        {{ cell.head_html() }}
+      {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for node in nodes %}
+      <tr>
+      {% for cell in columns %}
+        {{ cell.body_html(node) }}
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+{% block footer %}
+  <a href="../nodes.csv">Download CSV</a>
+{% endblock %}

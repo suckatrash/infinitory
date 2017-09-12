@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block title %}Service {{ service["human_name"] }}{% endblock %}
+{% block body %}
+  <h1>Service {{ service["human_name"] }}</h1>
+  <table>
+    <tbody>
+      <tr>
+        <th>Class</th>
+        <td>{{ service["class_name"] }}</td>
+      </tr>
+      <tr>
+        <th>Documentation</th>
+        <td>
+          <ul>
+          {% for url in service["doc_urls"] %}
+            <li><a href="{{ url }}">{{url}}</a></li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <th>Downtime impact</th>
+        <td>{{ service["downtime_impact"] | unundef }}</td>
+      </tr>
+      <tr>
+        <th>End users</th>
+        <td>
+        {% if service["end_users"] != ":undef" %}
+          <ul>
+          {% for email in service["end_users"] %}
+            <li><a href="mailto:{{ email }}">{{email}}</a></li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Escalation period</th>
+        <td>{{ service["escalation_period"] | unundef }}</td>
+      </tr>
+      <tr>
+        <th>Notes</th>
+        <td>
+          <div class="notes">
+            {{ service["notes"] | unundef | markdown }}
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <th>Other FQDNs</th>
+        <td>
+          <ul>
+          {% for fqdn in service["other_fqdns"] %}
+            <li>{{ fqdn }}</li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <th>Owner</th>
+        <td>{{ service["owner_uid"] | unundef }}</td>
+      </tr>
+      <tr>
+        <th>Team</th>
+        <td>{{ service["team"] | unundef }}</td>
+      </tr>
+      <tr>
+        <th>Nodes</th>
+        <td>
+          <ul>
+          {% for node in service["nodes"] | sort(attribute='facts.fqdn') %}
+            <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+{% endblock %}

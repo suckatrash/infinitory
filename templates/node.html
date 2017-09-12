@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block title %}Node {{ node["facts"]["fqdn"] }}{% endblock %}
+{% block body %}
+  <h1>Node {{ node["facts"]["fqdn"] }}</h1>
+  <table>
+    <tbody>
+    {% for cell in columns %}
+      <tr>
+        {{ cell.head_html() }}
+        {{ cell.body_html(node) }}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

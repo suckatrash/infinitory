@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Role inventory{% endblock %}
+{% block body %}
+  <h1>Role inventory</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Nodes</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for role, nodes in roles %}
+      <tr id="{{ role }}">
+        <th>{{ role }}</th>
+        <td>
+          <ul>
+          {% for node in nodes | sort(attribute="facts.fqdn") %}
+            <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
+          {% endfor %}
+          </ul>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
