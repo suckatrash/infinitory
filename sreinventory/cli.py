@@ -168,4 +168,5 @@ def main():
     if os.path.isdir("output"):
         shutil.rmtree("output")
     os.mkdir("output", 0o755)
+    shutil.copytree("static", "output/static")
     output_html(inventory, "output")
