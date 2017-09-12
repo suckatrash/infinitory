@@ -18,6 +18,11 @@ from sreinventory.inventory import Inventory
 from simplepup import puppetdb
 
 def output_html(inventory, directory):
+    if os.path.isdir(directory):
+        shutil.rmtree(directory)
+    os.mkdir(directory, 0o755)
+    shutil.copytree("static", "{}/static".format(directory))
+
     with open("{}/pygments.css".format(directory), "w", encoding="utf-8") as css:
         css.write(pygments.formatters.HtmlFormatter().get_style_defs('.codehilite'))
 
@@ -165,8 +170,4 @@ def main():
     except paramiko.ssh_exception.SSHException as e:
         sys.exit("PuppetDB connection (SSH): {}".format(e))
 
-    if os.path.isdir("output"):
-        shutil.rmtree("output")
-    os.mkdir("output", 0o755)
-    shutil.copytree("static", "output/static")
     output_html(inventory, "output")
