@@ -20,6 +20,7 @@ setuptools.setup(
 
     packages = [ "sreinventory" ],
     install_requires = [
+        "click",
         "Jinja2",
         "markdown2",
         "pygments",

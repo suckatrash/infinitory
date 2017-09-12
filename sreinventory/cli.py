@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import click
 import csv
 from datetime import datetime
 import jinja2
@@ -9,6 +10,7 @@ import markdown2
 import paramiko.ssh_exception
 import pygments.formatters
 import re
+import requests
 import socket
 import shutil
 import sys
@@ -16,6 +18,7 @@ import sys
 from sreinventory import cellformatter
 from sreinventory.inventory import Inventory
 from simplepup import puppetdb
+
 
 def output_html(inventory, directory):
     if os.path.isdir(directory):
@@ -150,24 +153,61 @@ def render_template(template_name, **kwargs):
     template = environment.get_template(template_name)
     return template.render(body_id=body_id, **kwargs)
 
-def main():
-    logging.basicConfig(level=logging.INFO)
+def set_up_logging(level=logging.WARNING):
+    logging.captureWarnings(True)
+
+    handler = logging.StreamHandler(stream=sys.stdout)
+    try:
+        import colorlog
+        handler.setFormatter(colorlog.ColoredFormatter(
+            "%(log_color)s%(name)s[%(processName)s]: %(message)s"))
+    except ImportError:
+        handler.setFormatter(logging.Formatter("%(name)s[%(processName)s]: %(message)s"))
+
+    root = logging.getLogger()
+    root.setLevel(level)
+    root.addHandler(handler)
+
     logging.getLogger("paramiko").setLevel(logging.FATAL)
 
-    inventory = Inventory()
-    inventory.add_active_filter()
+@click.command()
+@click.option("--output", "-o", required=True, metavar="PATH", help="Directory to put report in. WARNING: this directory will be removed if it already exists.")
+@click.option("--host", "-h", default="localhost", metavar="HOST", help="PuppetDB host to query")
+@click.option("--verbose", "-v", default=False, is_flag=True)
+@click.option("--debug", "-d", default=False, is_flag=True)
+@click.version_option()
+def main(host, output, verbose, debug):
+    """Generate SRE inventory report"""
+
+    if debug:
+        set_up_logging(logging.DEBUG)
+    elif verbose:
+        set_up_logging(logging.INFO)
+    else:
+        set_up_logging(logging.WARNING)
 
     try:
-        with puppetdb.AutomaticConnection(sys.argv[1]) as pdb:
+        inventory = Inventory()
+        inventory.add_active_filter()
+
+        with puppetdb.AutomaticConnection(host) as pdb:
             inventory.load_nodes(pdb)
             inventory.load_backups(pdb)
             inventory.load_logging(pdb)
             inventory.load_metrics(pdb)
             inventory.load_monitoring(pdb)
             inventory.load_roles(pdb)
+
+        output_html(inventory, output)
     except socket.gaierror as e:
         sys.exit("PuppetDB connection (Socket): {}".format(e))
     except paramiko.ssh_exception.SSHException as e:
         sys.exit("PuppetDB connection (SSH): {}".format(e))
+    except puppetdb.ResponseError as e:
+        sys.exit(e)
+    except puppetdb.QueryError as e:
+        sys.exit(e)
+    except requests.exceptions.ConnectionError as e:
+        sys.exit(e)
 
-    output_html(inventory, "output")
+
