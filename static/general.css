@@ -22,7 +22,7 @@ main {
   float: left; /* Ensure this expands to contain the table. */
   min-width: 100%;
   box-sizing: border-box;
-  padding: 1em 1em 3em 1em;
+  padding: 1em;
   border-top: 3px solid #000;
   border-bottom: 3px solid #000;
 }
@@ -87,6 +87,7 @@ h1 {
 table {
   min-width: 750px;
   border-collapse: collapse;
+  margin: 1em 0 2em 0;
 }
 
 th, td {
