@@ -47,6 +47,13 @@ nav > ul > li {
   list-style-type: none;
 }
 
+nav .infinitory-logo {
+  font-size: 24px;
+  font-family: Garamond, serif;
+  vertical-align: -3px;
+  line-height: 18px;
+}
+
 nav a,
 footer a {
   font-weight: bold;
