@@ -1,1 +1,3 @@
 include README.rst
+graft infinitory/static
+graft infinitory/templates

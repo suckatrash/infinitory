@@ -24,7 +24,10 @@ def output_html(inventory, directory):
     if os.path.isdir(directory):
         shutil.rmtree(directory)
     os.mkdir(directory, 0o755)
-    shutil.copytree("static", "{}/static".format(directory))
+
+    shutil.copytree(
+        "{}/static".format(os.path.dirname(os.path.abspath(__file__))),
+        "{}/static".format(directory))
 
     with open("{}/pygments.css".format(directory), "w", encoding="utf-8") as css:
         css.write(pygments.formatters.HtmlFormatter().get_style_defs('.codehilite'))
@@ -126,8 +129,9 @@ def output_html(inventory, directory):
 
 
 def render_template(template_name, **kwargs):
+    data_path = os.path.dirname(os.path.abspath(__file__))
     environment = jinja2.Environment(
-        loader=jinja2.FileSystemLoader("templates"),
+        loader=jinja2.FileSystemLoader("{}/templates".format(data_path)),
         autoescape=jinja2.select_autoescape(default=True))
 
     md = markdown2.Markdown(extras=[
