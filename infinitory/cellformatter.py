@@ -112,13 +112,13 @@ class Services(Set):
 
 class Owners(Services):
     def item_html(self, service):
-        if service["owner_uid"] == ":undef":
+        if service.get("owner_uid", ":undef") == ":undef":
             return ""
         else:
             return Markup('<li>%s</li>') % service["owner_uid"]
 
     def item_csv(self, service):
-        if service["owner_uid"] == ":undef":
+        if service.get("owner_uid", ":undef") == ":undef":
             return ""
         else:
             return service["owner_uid"]
@@ -126,13 +126,13 @@ class Owners(Services):
 
 class Teams(Services):
     def item_html(self, service):
-        if service["team"] == ":undef":
+        if service.get("team", ":undef") == ":undef":
             return ""
         else:
             return Markup('<li>%s</li>') % service["team"]
 
     def item_csv(self, service):
-        if service["team"] == ":undef":
+        if service.get("team", ":undef") == ":undef":
             return ""
         else:
             return service["team"]
@@ -146,8 +146,17 @@ class Fqdn(Base):
             self.value_html(record))
 
     def value_html(self, record):
-        return Markup(
-            '<a href="%s.html"><b>%s<span>.</span></b><i>%s</i></a>') % (
+        if "hostname" not in record["facts"]:
+            return Markup('<a href="%s.html">%s</a>') % (
+                record["certname"],
+                record["certname"])
+        elif "domain" not in record["facts"]:
+            return Markup('<a href="%s.html"><b>%s</b></a>') % (
+                record["certname"],
+                record["facts"]["hostname"])
+        else:
+            return Markup(
+                '<a href="%s.html"><b>%s<span>.</span></b><i>%s</i></a>') % (
                 record["certname"],
                 record["facts"]["hostname"],
                 record["facts"]["domain"])
@@ -155,8 +164,8 @@ class Fqdn(Base):
 
 class Os(Base):
     def value(self, record):
-        os_fact = super(Os, self).value(record)
-        os = [os_fact["name"]]
+        os_fact = record["facts"].get("os", dict())
+        os = [os_fact.get("name", "")]
 
         try:
             os.append(os_fact["release"]["full"])

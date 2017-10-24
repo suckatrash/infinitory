@@ -72,7 +72,7 @@ class Inventory(object):
     def sorted_nodes(self, section, key):
         return sorted(
             self.nodes.values(),
-            key=lambda node: node[section][key])
+            key=lambda node: node.get(section, dict()).get(key, ""))
 
     def sorted_roles(self):
         return sorted(self.roles.items())
