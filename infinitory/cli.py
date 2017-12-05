@@ -4,6 +4,7 @@ import click
 import csv
 from datetime import datetime
 import jinja2
+import json
 import logging
 import os
 import markdown2
@@ -90,6 +91,8 @@ def output_html(inventory, directory):
         for node in nodes:
             csv_writer.writerow([cell.body_csv(node) for cell in all_columns])
 
+    write_json(nodes, directory, "index")
+
     for node in nodes:
         path = "{}/nodes/{}.html".format(directory, node["certname"])
         with open(path, "w", encoding="utf-8") as html:
@@ -126,7 +129,6 @@ def output_html(inventory, directory):
                     path="../",
                     generation_time=generation_time,
                     service=service))
-
 
 def render_template(template_name, **kwargs):
     data_path = os.path.dirname(os.path.abspath(__file__))
@@ -174,6 +176,11 @@ def set_up_logging(level=logging.WARNING):
 
     logging.getLogger("paramiko").setLevel(logging.FATAL)
 
+def write_json(nodes, directory, filename):
+    path = "{}/nodes/{}.json".format(directory, filename)
+    with open(path, "w", encoding="utf-8") as json_out:
+        json_out.write(json.dumps(nodes))
+
 @click.command()
 @click.option("--output", "-o", required=True, metavar="PATH", help="Directory to put report in. WARNING: this directory will be removed if it already exists.")
 @click.option("--host", "-h", default="localhost", metavar="HOST", help="PuppetDB host to query")
@@ -182,7 +189,6 @@ def set_up_logging(level=logging.WARNING):
 @click.version_option()
 def main(host, output, verbose, debug):
     """Generate SRE inventory report"""
-
     if debug:
         set_up_logging(logging.DEBUG)
     elif verbose:
