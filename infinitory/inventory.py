@@ -63,7 +63,7 @@ class Inventory(object):
     def load_roles(self, pdb):
         self.roles = defaultdict(list)
 
-        condition = 'type = "Profile::Motd::Register" and file ~ "/site[.]pp$"'
+        condition = 'type = "Class" and title ~ "^Role::"'
         for node, resource in self.query_resources(pdb, condition):
             if resource["title"] not in ("role", "role::delivery"):
                 node["other"]["roles"].append(resource["title"])
