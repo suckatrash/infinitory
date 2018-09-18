@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name = "infinitory",
-    version = "0.0.5",
+    version = "0.0.6",
 
     description = "SRE host, role, and service inventory",
     author = "Daniel Parks",
