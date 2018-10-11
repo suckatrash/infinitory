@@ -93,4 +93,3 @@ class Inventory(object):
                 services[class_name]["nodes"].append(node)
 
         return sorted(services.values(), key=itemgetter("human_name"))
-

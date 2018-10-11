@@ -173,4 +173,3 @@ class Os(Base):
             pass
 
         return " ".join(os)
-

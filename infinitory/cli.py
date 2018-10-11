@@ -219,5 +219,3 @@ def main(host, output, verbose, debug):
         sys.exit(e)
     except requests.exceptions.ConnectionError as e:
         sys.exit(e)
-
-
