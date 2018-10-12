@@ -33,6 +33,7 @@ def output_html(inventory, directory):
     with open("{}/pygments.css".format(directory), "w", encoding="utf-8") as css:
         css.write(pygments.formatters.HtmlFormatter().get_style_defs('.codehilite'))
 
+    os.mkdir("{}/errors".format(directory), 0o755)
     os.mkdir("{}/nodes".format(directory), 0o755)
     nodes = inventory.sorted_nodes("facts", "fqdn")
     generation_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%SZ")
@@ -53,6 +54,39 @@ def output_html(inventory, directory):
         cellformatter.Boolean("other", "metrics"),
         cellformatter.Roles("other", "roles"),
     ]
+
+    unique_error_columns = [
+        cellformatter.Base("other", "count"),
+        cellformatter.Base("other", "level"),
+        cellformatter.Base("other", "message"),
+        cellformatter.TruncatedList("other", "certnames"),
+    ]
+
+    unique_errors = inventory.unique_errors()
+
+    with open("{}/errors/index.html".format(directory), "w", encoding="utf-8") as html:
+        html.write(
+            render_template("errors.html",
+                path="../",
+                generation_time=generation_time,
+                columns=unique_error_columns,
+                errors=unique_errors))
+
+    all_error_columns = [
+        cellformatter.Base("other", "message"),
+        cellformatter.Base("other", "level"),
+        cellformatter.Base("other", "certname"),
+    ]
+
+    all_errors = inventory.all_errors()
+
+    with open("{}/errors/all.html".format(directory), "w", encoding="utf-8") as html:
+        html.write(
+            render_template("all_errors.html",
+                path="../",
+                generation_time=generation_time,
+                columns=all_error_columns,
+                errors=unique_errors))
 
     with open("{}/nodes/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
@@ -130,6 +164,7 @@ def output_html(inventory, directory):
                     generation_time=generation_time,
                     service=service))
 
+
 def render_template(template_name, **kwargs):
     data_path = os.path.dirname(os.path.abspath(__file__))
     environment = jinja2.Environment(
@@ -197,16 +232,17 @@ def main(host, output, verbose, debug):
         set_up_logging(logging.WARNING)
 
     try:
-        inventory = Inventory()
+        inventory = Inventory(debug=debug)
         inventory.add_active_filter()
 
-        with puppetdb.AutomaticConnection(host) as pdb:
-            inventory.load_nodes(pdb)
-            inventory.load_backups(pdb)
-            inventory.load_logging(pdb)
-            inventory.load_metrics(pdb)
-            inventory.load_monitoring(pdb)
-            inventory.load_roles(pdb)
+        with puppetdb.AutomaticConnection(host) as pupdb:
+            inventory.load_nodes(pupdb)
+            inventory.load_errors(pupdb)
+            inventory.load_backups(pupdb)
+            inventory.load_logging(pupdb)
+            inventory.load_metrics(pupdb)
+            inventory.load_monitoring(pupdb)
+            inventory.load_roles(pupdb)
 
         output_html(inventory, output)
     except socket.gaierror as e:
@@ -219,5 +255,3 @@ def main(host, output, verbose, debug):
         sys.exit(e)
     except requests.exceptions.ConnectionError as e:
         sys.exit(e)
-
-

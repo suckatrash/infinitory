@@ -24,8 +24,12 @@ setuptools.setup(
         "Jinja2",
         "markdown2",
         "pygments",
-        "simplepup"
+        "simplepup",
     ],
+
+    tests_requires = [
+        "pytest",
+    ]
 
     include_package_data = True,
     entry_points = {

@@ -5,6 +5,7 @@ from jinja2 import Markup
 from operator import itemgetter
 import re
 
+
 class Base(object):
     def __init__(self, section, key, header=None):
         self.section = section
@@ -53,6 +54,21 @@ class Boolean(Base):
 
     def value_csv(self, record):
         return "Y" if self.value(record) else "N"
+
+
+class TruncatedList(Base):
+    def value_html(self, record):
+        items = [self.item_html(i) for i in self.value(record)]
+        return Markup("<ol>%s</ol>") % Markup("\n").join(items[:5])
+
+    def item_html(self, item):
+        return Markup("<li>%s</li>") % item
+
+    def value_csv(self, record):
+        return "\n".join([self.item_csv(i) for i in self.value(record)])
+
+    def item_csv(self, item):
+        return item
 
 
 class List(Base):
@@ -173,4 +189,3 @@ class Os(Base):
             pass
 
         return " ".join(os)
-
