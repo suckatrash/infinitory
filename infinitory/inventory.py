@@ -77,19 +77,23 @@ class Inventory(object):
     def sorted_roles(self):
         return sorted(self.roles.items())
 
-    def sorted_services(self):
-        services = dict()
+    def sorted_applications(self):
+        applications = dict()
 
         for node in self.nodes.values():
             profile_metadata = node["facts"].get("profile_metadata", dict())
+
+            # Previously we used the term “services” instead of “applications.”
+            # This was changed to avoid confusion since there is a related
+            # Puppet resource type called “Service.”
             service_facts = profile_metadata.get("services", list())
 
             for service_fact in service_facts:
                 class_name = service_fact["class_name"]
-                if class_name not in services:
-                    services[class_name] = service_fact
-                    services[class_name]["nodes"] = list()
+                if class_name not in applications:
+                    applications[class_name] = service_fact
+                    applications[class_name]["nodes"] = list()
 
-                services[class_name]["nodes"].append(node)
+                applications[class_name]["nodes"].append(node)
 
-        return sorted(services.values(), key=itemgetter("human_name"))
+        return sorted(applications.values(), key=itemgetter("human_name"))

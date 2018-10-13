@@ -1,18 +1,18 @@
 {% extends "layout.html" %}
-{% block title %}Service {{ service["human_name"] }}{% endblock %}
+{% block title %}{{ application["human_name"] }}{% endblock %}
 {% block body %}
-  <h1>Service {{ service["human_name"] }}</h1>
+  <h1>{{ application["human_name"] }}</h1>
   <table>
     <tbody>
       <tr>
         <th>Class</th>
-        <td>{{ service["class_name"] }}</td>
+        <td>{{ application["class_name"] }}</td>
       </tr>
       <tr>
         <th>Documentation</th>
         <td>
           <ul>
-          {% for url in service["doc_urls"] %}
+          {% for url in application["doc_urls"] %}
             <li><a href="{{ url }}">{{url}}</a></li>
           {% endfor %}
           </ul>
@@ -20,14 +20,14 @@
       </tr>
       <tr>
         <th>Downtime impact</th>
-        <td>{{ service["downtime_impact"] | unundef }}</td>
+        <td>{{ application["downtime_impact"] | unundef }}</td>
       </tr>
       <tr>
         <th>End users</th>
         <td>
-        {% if service["end_users"] != ":undef" %}
+        {% if application["end_users"] != ":undef" %}
           <ul>
-          {% for email in service["end_users"] %}
+          {% for email in application["end_users"] %}
             <li><a href="mailto:{{ email }}">{{email}}</a></li>
           {% endfor %}
           </ul>
@@ -36,14 +36,14 @@
       </tr>
       <tr>
         <th>Escalation period</th>
-        <td>{{ service["escalation_period"] | unundef }}</td>
+        <td>{{ application["escalation_period"] | unundef }}</td>
       </tr>
       <tr>
         <th>Notes</th>
         <td>
           <div class="notes">
-          {% if service["notes"] %}
-            {{ service["notes"] | unundef | markdown }}
+          {% if application["notes"] %}
+            {{ application["notes"] | unundef | markdown }}
           {% endif %}
           </div>
         </td>
@@ -52,7 +52,7 @@
         <th>Other FQDNs</th>
         <td>
           <ul>
-          {% for fqdn in service["other_fqdns"] %}
+          {% for fqdn in application["other_fqdns"] %}
             <li>{{ fqdn }}</li>
           {% endfor %}
           </ul>
@@ -60,17 +60,17 @@
       </tr>
       <tr>
         <th>Owner</th>
-        <td>{{ service["owner_uid"] | unundef }}</td>
+        <td>{{ application["owner_uid"] | unundef }}</td>
       </tr>
       <tr>
         <th>Team</th>
-        <td>{{ service["team"] | unundef }}</td>
+        <td>{{ application["team"] | unundef }}</td>
       </tr>
       <tr>
         <th>Nodes</th>
         <td>
           <ul>
-          {% for node in service["nodes"] | sort(attribute='facts.fqdn') %}
+          {% for node in application["nodes"] | sort(attribute='facts.fqdn') %}
             <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
           {% endfor %}
           </ul>

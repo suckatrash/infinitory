@@ -1,23 +1,23 @@
 {% extends "layout.html" %}
-{% block title %}Service inventory{% endblock %}
+{% block title %}Application inventory{% endblock %}
 {% block body %}
-  <h1>Service inventory</h1>
+  <h1>Application inventory</h1>
   <table>
     <thead>
       <tr>
-        <th>Service</th>
+        <th>Application</th>
         <th>Nodes</th>
       </tr>
     </thead>
     <tbody>
-    {% for service in services %}
-      <tr id="{{ service }}">
+    {% for application in applications %}
+      <tr id="{{ application }}">
         <th>
-          <a href="./{{ service["class_name"] }}.html">{{ service["human_name"] }}</a>
+          <a href="./{{ application["class_name"] }}.html">{{ application["human_name"] }}</a>
         </th>
         <td>
           <ul>
-          {% for node in service["nodes"] | sort(attribute="facts.fqdn") %}
+          {% for node in application["nodes"] | sort(attribute="facts.fqdn") %}
             <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
           {% endfor %}
           </ul>

@@ -176,6 +176,6 @@ td p {
 }
 
 body#node th,
-body#service th {
+body#application th {
   width: 180px;
 }

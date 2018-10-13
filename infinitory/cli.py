@@ -46,7 +46,7 @@ def output_html(inventory, directory):
     report_columns = [
         cellformatter.Fqdn("facts", "fqdn"),
         cellformatter.Teams("other", "teams"),
-        cellformatter.Services("other", "services"),
+        cellformatter.Applications("other", "applications"),
         cellformatter.Boolean("other", "monitoring"),
         cellformatter.Boolean("other", "backups"),
         cellformatter.Boolean("other", "logging"),
@@ -66,7 +66,7 @@ def output_html(inventory, directory):
         cellformatter.Base("facts", "fqdn"),
         cellformatter.Teams("other", "teams"),
         cellformatter.Owners("other", "owners"),
-        cellformatter.Services("other", "services"),
+        cellformatter.Applications("other", "applications"),
         cellformatter.Base("other", "icinga_notification_period", "Icinga notification period"),
         cellformatter.Base("other", "icinga_stage", header="Icinga stage"),
         cellformatter.Base("other", "icinga_owner", header="Icinga owner"),
@@ -111,24 +111,24 @@ def output_html(inventory, directory):
                 generation_time=generation_time,
                 roles=inventory.sorted_roles()))
 
-    os.mkdir("{}/services".format(directory), 0o755)
-    sorted_services = inventory.sorted_services()
+    os.mkdir("{}/applications".format(directory), 0o755)
+    sorted_applications = inventory.sorted_applications()
 
-    with open("{}/services/index.html".format(directory), "w", encoding="utf-8") as html:
+    with open("{}/applications/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
-            render_template("services.html",
+            render_template("applications.html",
                 path="../",
                 generation_time=generation_time,
-                services=sorted_services))
+                applications=sorted_applications))
 
-    for service in sorted_services:
-        path = "{}/services/{}.html".format(directory, service["class_name"])
+    for application in sorted_applications:
+        path = "{}/applications/{}.html".format(directory, application["class_name"])
         with open(path, "w", encoding="utf-8") as html:
             html.write(
-                render_template("service.html",
+                render_template("application.html",
                     path="../",
                     generation_time=generation_time,
-                    service=service))
+                    application=application))
 
 def render_template(template_name, **kwargs):
     data_path = os.path.dirname(os.path.abspath(__file__))

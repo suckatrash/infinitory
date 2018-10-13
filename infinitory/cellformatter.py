@@ -96,46 +96,47 @@ class Roles(Set):
         return Markup('<li><a href="../roles/index.html#%s">%s</a></li>') % (role, role)
 
 
-class Services(Set):
+class Applications(Set):
     def value(self, record):
         profile_metadata = record["facts"].get("profile_metadata", dict())
-        return sorted(profile_metadata.get("services", list()), key=itemgetter("human_name"))
+        applications = profile_metadata.get("services", list())
+        return sorted(applications, key=itemgetter("human_name"))
 
-    def item_html(self, service):
-        return Markup('<li><a href="../services/%s.html">%s</a></li>') % (
-            service["class_name"],
-            service["human_name"])
+    def item_html(self, application):
+        return Markup('<li><a href="../applications/%s.html">%s</a></li>') % (
+            application["class_name"],
+            application["human_name"])
 
-    def item_csv(self, service):
-        return service["class_name"]
+    def item_csv(self, application):
+        return application["class_name"]
 
 
-class Owners(Services):
-    def item_html(self, service):
-        if service.get("owner_uid", ":undef") == ":undef":
+class Owners(Applications):
+    def item_html(self, application):
+        if application.get("owner_uid", ":undef") == ":undef":
             return ""
         else:
-            return Markup('<li>%s</li>') % service["owner_uid"]
+            return Markup('<li>%s</li>') % application["owner_uid"]
 
-    def item_csv(self, service):
-        if service.get("owner_uid", ":undef") == ":undef":
+    def item_csv(self, application):
+        if application.get("owner_uid", ":undef") == ":undef":
             return ""
         else:
-            return service["owner_uid"]
+            return application["owner_uid"]
 
 
-class Teams(Services):
-    def item_html(self, service):
-        if service.get("team", ":undef") == ":undef":
+class Teams(Applications):
+    def item_html(self, application):
+        if application.get("team", ":undef") == ":undef":
             return ""
         else:
-            return Markup('<li>%s</li>') % service["team"]
+            return Markup('<li>%s</li>') % application["team"]
 
-    def item_csv(self, service):
-        if service.get("team", ":undef") == ":undef":
+    def item_csv(self, application):
+        if application.get("team", ":undef") == ":undef":
             return ""
         else:
-            return service["team"]
+            return application["team"]
 
 
 class Fqdn(Base):
