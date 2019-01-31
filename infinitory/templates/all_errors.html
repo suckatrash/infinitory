@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}All Errors{% endblock %}
+{% block body %}
+  <a href="{{ path }}errors/index.html">Unique Errors</a>
+  <h1>All Errors</h1>
+  <table>
+    <thead>
+      <tr>
+      {% for cell in columns %}
+        {{ cell.head_html() }}
+      {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+    {% for error in errors %}
+      <tr>
+      {% for cell in columns %}
+        {{ cell.body_html(error) }}
+      {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+{% block footer %}
+  <a href="../errors.csv">Download CSV</a>
+{% endblock %}

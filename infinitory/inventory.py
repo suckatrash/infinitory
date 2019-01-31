@@ -2,8 +2,13 @@ from collections import defaultdict
 from operator import itemgetter
 from simplepup import puppetdb
 
+import infinitory.errors as errors
+
+
 class Inventory(object):
-    def __init__(self, filters=set()):
+    def __init__(self, filters=set(), debug=False):
+        self.debug = debug
+        self.errorParser = errors.ErrorParser(debug=debug)
         self.filter = puppetdb.QueryFilter(filters)
         self.nodes = None
         self.roles = None
@@ -14,18 +19,18 @@ class Inventory(object):
     def add_filter(self, filter):
         self.filter.add(filter)
 
-    def load_nodes(self, pdb):
+    def load_nodes(self, pupdb):
         self.nodes = dict()
-        for node in pdb.query(self.filter('inventory {}')):
+        for node in pupdb.query(self.filter('inventory {}')):
             node["other"] = defaultdict(list)
             self.nodes[node["certname"]] = node
 
-    def query_classes(self, pdb, class_name):
-        return self.query_resources(pdb,
+    def query_classes(self, pupdb, class_name):
+        return self.query_resources(pupdb,
             'title="%s" and type="Class"' % class_name)
 
-    def query_resources(self, pdb, condition, include_absent=False):
-        for resource in pdb.query(self.filter('resources {}', condition)):
+    def query_resources(self, pupdb, condition, include_absent=False):
+        for resource in pupdb.query(self.filter('resources {}', condition)):
             if not include_absent:
                 if resource["parameters"].get("ensure", None) == "absent":
                     continue
@@ -35,36 +40,54 @@ class Inventory(object):
             except KeyError:
                 continue
 
-    def load_backups(self, pdb):
-        for node, resource in self.query_resources(pdb, 'type="Backup::Job"'):
+    def load_backups(self, pupdb):
+        for node, resource in self.query_resources(pupdb, 'type="Backup::Job"'):
             paths = resource["parameters"]["files"]
             if type(paths) is list:
                 node["other"]["backups"].extend(paths)
             else:
                 node["other"]["backups"].append(paths)
 
-    def load_logging(self, pdb):
-        for node, resource in self.query_classes(pdb, "Profile::Logging::Rsyslog::Client"):
+    def load_errors(self, pupdb):
+        self.errorParser.load_reports(pupdb)
+        self.errorParser.extract_errors_from_reports()
+
+    def wrap_with_category(self, list_of_hashes, category):
+        retval = []
+        for error in list_of_hashes:
+            retval.append({
+                category: error
+            })
+        return retval
+
+    def unique_errors(self):
+        return self.wrap_with_category(self.errorParser.unique_errors, "other")
+
+    def all_errors(self):
+        return self.wrap_with_category(self.errorParser.all_errors, "other")
+
+    def load_logging(self, pupdb):
+        for node, resource in self.query_classes(pupdb, "Profile::Logging::Rsyslog::Client"):
             node["other"]["logging"] = True
 
-    def load_metrics(self, pdb):
-        for node, resource in self.query_classes(pdb, "Profile::Metrics"):
+    def load_metrics(self, pupdb):
+        for node, resource in self.query_classes(pupdb, "Profile::Metrics"):
             node["other"]["metrics"] = True
 
-    def load_monitoring(self, pdb):
-        for node, resource in self.query_classes(pdb, "Profile::Server::Monitor"):
+    def load_monitoring(self, pupdb):
+        for node, resource in self.query_classes(pupdb, "Profile::Server::Monitor"):
             node["other"]["monitoring"] = True
 
-        for node, resource in self.query_classes(pdb, "Profile::Monitoring::Icinga2::Common"):
+        for node, resource in self.query_classes(pupdb, "Profile::Monitoring::Icinga2::Common"):
             node["other"]["icinga_notification_period"] = resource["parameters"]["notification_period"]
             node["other"]["icinga_environment"] = resource["parameters"]["icinga2_environment"]
             node["other"]["icinga_owner"] = resource["parameters"]["owner"]
 
-    def load_roles(self, pdb):
+    def load_roles(self, pupdb):
         self.roles = defaultdict(list)
 
         condition = 'type = "Class" and title ~ "^Role::"'
-        for node, resource in self.query_resources(pdb, condition):
+        for node, resource in self.query_resources(pupdb, condition):
             if resource["title"] not in ("role", "role::delivery"):
                 node["other"]["roles"].append(resource["title"])
                 self.roles[resource["title"]].append(node)
