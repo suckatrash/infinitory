@@ -27,9 +27,9 @@ setuptools.setup(
         "simplepup",
     ],
 
-    tests_requires = [
+    tests_require = [
         "pytest",
-    ]
+    ],
 
     include_package_data = True,
     entry_points = {
