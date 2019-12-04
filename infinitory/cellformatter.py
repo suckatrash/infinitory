@@ -41,8 +41,10 @@ class Base(object):
         return self.value(record)
 
     def value(self, record):
-        return record[self.section].get(self.key, None) or ""
-
+        if record[self.section] is None:
+            return ""
+        else:
+            return record[self.section].get(self.key, None) or ""
 
 class Boolean(Base):
     def body_class(self, record):
