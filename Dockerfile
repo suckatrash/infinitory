@@ -1,6 +1,8 @@
 FROM python:3
 ADD generate.py /
+ENV TOKEN $TOKEN
+ENV BUCKET $BUCKET
+ENV GOOGLE_APPLICATION_CREDENTIALS $GOOGLE_APPLICATION_CREDENTIALS
 RUN pip install --upgrade pip
-#RUN pip install --upgrade --extra-index-url https://artifactory.delivery.puppetlabs.net/artifactory/api/pypi/pypi/simple infinitory
-RUN pip install git+git://github.com/puppetlabs/infinitory.git@setup_fixup
-CMD [ "python", "generate.py", "pe-master-infranext-prod-1.infc-aws.puppet.net" ]
+RUN pip install -i https://artifactory.delivery.puppetlabs.net/artifactory/api/pypi/pypi/simple -v infinitory==0.1.6 
+ENTRYPOINT python generate.py ${PDB_HOST} ${TOKEN} ${BUCKET}

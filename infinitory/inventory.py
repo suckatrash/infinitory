@@ -1,9 +1,9 @@
 from collections import defaultdict
 from operator import itemgetter
 from simplepup import puppetdb
+from pypuppetdb import connect
 
 import infinitory.errors as errors
-
 
 class Inventory(object):
     def __init__(self, filters=set(), debug=False):
@@ -21,16 +21,16 @@ class Inventory(object):
 
     def load_nodes(self, pupdb):
         self.nodes = dict()
-        for node in pupdb.query(self.filter('inventory {}')):
+        for node in pupdb._query('inventory'):
             node["other"] = defaultdict(list)
             self.nodes[node["certname"]] = node
 
     def query_classes(self, pupdb, class_name):
         return self.query_resources(pupdb,
-            'title="%s" and type="Class"' % class_name)
+            '["and", ["=", "title", "%s"], ["=", "type", "Class"]]' % class_name)
 
     def query_resources(self, pupdb, condition, include_absent=False):
-        for resource in pupdb.query(self.filter('resources {}', condition)):
+        for resource in pupdb._query('resources', query=condition):
             if not include_absent:
                 if resource["parameters"].get("ensure", None) == "absent":
                     continue
@@ -41,7 +41,7 @@ class Inventory(object):
                 continue
 
     def load_backups(self, pupdb):
-        for node, resource in self.query_resources(pupdb, 'type="Backup::Job"'):
+        for node, resource in self.query_resources(pupdb, '["=", "type", "Backup::Job"]'):
             paths = resource["parameters"]["files"]
             if type(paths) is list:
                 node["other"]["backups"].extend(paths)
@@ -86,7 +86,7 @@ class Inventory(object):
     def load_roles(self, pupdb):
         self.roles = defaultdict(list)
 
-        condition = 'type = "Class" and title ~ "^Role::"'
+        condition = '["and", ["=", "type", "Class"], ["~", "title", "^Role::"]]'
         for node, resource in self.query_resources(pupdb, condition):
             if resource["title"] not in ("role", "role::delivery"):
                 node["other"]["roles"].append(resource["title"])
