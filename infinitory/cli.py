@@ -19,9 +19,10 @@ import sys
 from infinitory import cellformatter
 from infinitory.inventory import Inventory
 from simplepup import puppetdb
+from pypuppetdb import connect
+from google.cloud import storage
 
-
-def output_html(inventory, directory):
+def output_html(inventory, directory, bucket_name):
     if os.path.isdir(directory):
         shutil.rmtree(directory)
     os.mkdir(directory, 0o755)
@@ -32,6 +33,7 @@ def output_html(inventory, directory):
 
     with open("{}/pygments.css".format(directory), "w", encoding="utf-8") as css:
         css.write(pygments.formatters.HtmlFormatter().get_style_defs('.codehilite'))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/pygments.css".format(directory), destination_blob_name="pygments.css")
 
     os.mkdir("{}/errors".format(directory), 0o755)
     os.mkdir("{}/nodes".format(directory), 0o755)
@@ -43,6 +45,7 @@ def output_html(inventory, directory):
             render_template("home.html",
                 path="",
                 generation_time=generation_time))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/index.html".format(directory), destination_blob_name="index.html")
 
     report_columns = [
         cellformatter.Fqdn("facts", "fqdn"),
@@ -71,6 +74,7 @@ def output_html(inventory, directory):
                 generation_time=generation_time,
                 columns=unique_error_columns,
                 errors=unique_errors))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/errors/index.html".format(directory), destination_blob_name="errors/index.html")
 
     all_error_columns = [
         cellformatter.Base("other", "message"),
@@ -87,6 +91,8 @@ def output_html(inventory, directory):
                 generation_time=generation_time,
                 columns=all_error_columns,
                 errors=unique_errors))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/errors/all.html".format(directory), destination_blob_name="errors/all.html")
+
 
     with open("{}/nodes/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
@@ -95,6 +101,8 @@ def output_html(inventory, directory):
                 generation_time=generation_time,
                 columns=report_columns,
                 nodes=nodes))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/nodes/index.html".format(directory), destination_blob_name="nodes/index.html")
+
 
     all_columns = [
         cellformatter.Base("facts", "fqdn"),
@@ -124,6 +132,8 @@ def output_html(inventory, directory):
         csv_writer.writerow([cell.head_csv() for cell in all_columns])
         for node in nodes:
             csv_writer.writerow([cell.body_csv(node) for cell in all_columns])
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/nodes.csv".format(directory), destination_blob_name="nodes.csv")
+
 
     write_json(nodes, directory, "index")
 
@@ -136,6 +146,7 @@ def output_html(inventory, directory):
                     generation_time=generation_time,
                     columns=all_columns[1:],
                     node=node))
+        gcs_upload(bucket_name=bucket_name, source_file_name="{}/nodes/{}.html".format(directory, node["certname"]), destination_blob_name="nodes/{}.html".format(node["certname"]))
 
     os.mkdir("{}/roles".format(directory), 0o755)
     with open("{}/roles/index.html".format(directory), "w", encoding="utf-8") as html:
@@ -144,6 +155,8 @@ def output_html(inventory, directory):
                 path="../",
                 generation_time=generation_time,
                 roles=inventory.sorted_roles()))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/roles/index.html".format(directory), destination_blob_name="roles/index.html")
+
 
     os.mkdir("{}/services".format(directory), 0o755)
     sorted_services = inventory.sorted_services()
@@ -154,6 +167,8 @@ def output_html(inventory, directory):
                 path="../",
                 generation_time=generation_time,
                 services=sorted_services))
+    gcs_upload(bucket_name=bucket_name, source_file_name="{}/services/index.html".format(directory), destination_blob_name="services/index.html")
+
 
     for service in sorted_services:
         path = "{}/services/{}.html".format(directory, service["class_name"])
@@ -163,6 +178,7 @@ def output_html(inventory, directory):
                     path="../",
                     generation_time=generation_time,
                     service=service))
+        gcs_upload(bucket_name=bucket_name, source_file_name="{}/services/{}.html".format(directory, service["class_name"]), destination_blob_name="services/{}.html".format(service["class_name"]))
 
 
 def render_template(template_name, **kwargs):
@@ -216,13 +232,24 @@ def write_json(nodes, directory, filename):
     with open(path, "w", encoding="utf-8") as json_out:
         json_out.write(json.dumps(nodes))
 
+def gcs_upload(bucket_name, source_file_name, destination_blob_name):
+    """Uploads a file to the bucket."""
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(destination_blob_name)
+
+    blob.upload_from_filename(source_file_name)
+    
 @click.command()
 @click.option("--output", "-o", required=True, metavar="PATH", help="Directory to put report in. WARNING: this directory will be removed if it already exists.")
 @click.option("--host", "-h", default="localhost", metavar="HOST", help="PuppetDB host to query")
+@click.option("--token", "-t", default="123token", metavar="TOKEN", help="RBAC auth token to use")
 @click.option("--verbose", "-v", default=False, is_flag=True)
 @click.option("--debug", "-d", default=False, is_flag=True)
+@click.option("--bucket", "-b", default="bucket", metavar="BUCKET", help="Bucket to save files to, such as GCS")
 @click.version_option()
-def main(host, output, verbose, debug):
+def main(host, token, output, bucket, verbose, debug ):
     """Generate SRE inventory report"""
     if debug:
         set_up_logging(logging.DEBUG)
@@ -231,20 +258,20 @@ def main(host, output, verbose, debug):
     else:
         set_up_logging(logging.WARNING)
 
+    pupdb = connect(host=host, port=8081, timeout=30, token=token)
     try:
         inventory = Inventory(debug=debug)
         inventory.add_active_filter()
+        
+        inventory.load_nodes(pupdb)
+        inventory.load_errors(pupdb)
+        inventory.load_backups(pupdb)
+        inventory.load_logging(pupdb)
+        inventory.load_metrics(pupdb)
+        inventory.load_monitoring(pupdb)
+        inventory.load_roles(pupdb)
 
-        with puppetdb.AutomaticConnection(host) as pupdb:
-            inventory.load_nodes(pupdb)
-            inventory.load_errors(pupdb)
-            inventory.load_backups(pupdb)
-            inventory.load_logging(pupdb)
-            inventory.load_metrics(pupdb)
-            inventory.load_monitoring(pupdb)
-            inventory.load_roles(pupdb)
-
-        output_html(inventory, output)
+        output_html(inventory, output, bucket_name=bucket)
     except socket.gaierror as e:
         sys.exit("PuppetDB connection (Socket): {}".format(e))
     except paramiko.ssh_exception.SSHException as e:

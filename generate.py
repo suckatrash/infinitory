@@ -3,15 +3,12 @@
 import sys
 import subprocess
 
-if len(sys.argv) == 1:
-    puppetdb = 'localhost'
-elif len(sys.argv) == 2:
-    puppetdb = sys.argv[1]
-else:
-    sys.exit("Expected 1 or 0 arguments. Got {}.".format(len(sys.argv) - 1))
+puppetdb = sys.argv[1]
+token = sys.argv[2]
+bucket = sys.argv[3]
 
 # Generate the report
 subprocess.check_call(
-    ["infinitory", "--host", "{}".format(puppetdb),
-        "--output", "/srv/infinitory/output"],
-    timeout=120)
+    ["infinitory", "--host", puppetdb, "--token", token, "--bucket", bucket,
+        "--output", "/output/infinitory"],
+    timeout=300)

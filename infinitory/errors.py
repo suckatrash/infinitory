@@ -32,21 +32,22 @@ class ErrorParser(object):
     def load_reports(self, pupdb):
         """ I didn't use a subquery because it takes much longer than loading
         the reports one by one """
-        for report in pupdb.query('nodes[certname, latest_report_hash] { }'):
-            cache_file = "%s/%s" % (self.reports_cache_path, report["latest_report_hash"])
-            if os.path.isfile(cache_file):
-                full_report = pickle.load(open(cache_file, "rb"))
-                if self.debug:
-                    sys.stdout.write('#')
-            else:
-                query = 'reports[] { hash = "%s" }' % report["latest_report_hash"]
-                full_report = pupdb.query(query)
-                pickle.dump( full_report, open(cache_file, "wb" ) )
-                if self.debug:
-                    sys.stdout.write('.')
-            sys.stdout.flush()
+        for report in pupdb._query('nodes', query='["extract", ["certname", "latest_report_hash"]]'):
+            if report["latest_report_hash"] != None:
+                cache_file = "%s/%s" % (self.reports_cache_path, report["latest_report_hash"])
+                if os.path.isfile(cache_file):
+                    full_report = pickle.load(open(cache_file, "rb"))
+                    if self.debug:
+                        sys.stdout.write('#')
+                else:
+                    query = '["=", "hash", "%s"]' % report["latest_report_hash"]
+                    full_report = pupdb._query('reports', query=query)
+                    pickle.dump( full_report, open(cache_file, "wb" ) )
+                    if self.debug:
+                        sys.stdout.write('.')
+                sys.stdout.flush()
 
-            self._reports[report["certname"]] = full_report[0]
+                self._reports[report["certname"]] = full_report[0]
 
     def common_error_prefixes(self):
         return [

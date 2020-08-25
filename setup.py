@@ -25,6 +25,8 @@ setuptools.setup(
         "markdown2",
         "pygments",
         "simplepup",
+        "pypuppetdb",
+        "google-cloud-storage",
     ],
 
     tests_require = [
