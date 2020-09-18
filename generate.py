@@ -11,4 +11,4 @@ bucket = sys.argv[3]
 subprocess.check_call(
     ["infinitory", "--host", puppetdb, "--token", token, "--bucket", bucket,
         "--output", "/output/infinitory"],
-    timeout=300)
+    timeout=1000)

@@ -11,14 +11,14 @@
     </thead>
     <tbody>
     {% for service in services %}
-      <tr id="{{ service }}">
+      <tr id="{{ service["class_name"] }}">
         <th>
-          <a href="./{{ service["class_name"] }}.html">{{ service["human_name"] }}</a>
+          <a href="../{{ service["class_name"] }}.html">{{ service["human_name"] }}</a>
         </th>
         <td>
           <ul>
           {% for node in service["nodes"] | sort(attribute="facts.fqdn") %}
-            <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
+            <li><a href="../../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
           {% endfor %}
           </ul>
         </td>

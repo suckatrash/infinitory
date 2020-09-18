@@ -109,7 +109,7 @@ class Set(Base):
 
 class Roles(Set):
     def item_html(self, role):
-        return Markup('<li><a href="../roles/index.html#%s">%s</a></li>') % (role, role)
+        return Markup('<li><a href="../../roles/index.html#%s">%s</a></li>') % (role, role)
 
 
 class Services(Set):
@@ -118,7 +118,7 @@ class Services(Set):
         return sorted(profile_metadata.get("services", list()), key=itemgetter("human_name"))
 
     def item_html(self, service):
-        return Markup('<li><a href="../services/%s.html">%s</a></li>') % (
+        return Markup('<li><a href="../../services/%s.html">%s</a></li>') % (
             service["class_name"],
             service["human_name"])
 
@@ -163,16 +163,16 @@ class Fqdn(Base):
 
     def value_html(self, record):
         if "hostname" not in record["facts"]:
-            return Markup('<a href="%s.html">%s</a>') % (
+            return Markup('<a href="../%s.html">%s</a>') % (
                 record["certname"],
                 record["certname"])
         elif "domain" not in record["facts"]:
-            return Markup('<a href="%s.html"><b>%s</b></a>') % (
+            return Markup('<a href="../%s.html"><b>%s</b></a>') % (
                 record["certname"],
                 record["facts"]["hostname"])
         else:
             return Markup(
-                '<a href="%s.html"><b>%s<span>.</span></b><i>%s</i></a>') % (
+                '<a href="../%s.html"><b>%s<span>.</span></b><i>%s</i></a>') % (
                 record["certname"],
                 record["facts"]["hostname"],
                 record["facts"]["domain"])

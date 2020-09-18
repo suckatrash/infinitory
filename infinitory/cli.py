@@ -43,7 +43,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("home.html",
-                path="",
+                path="../",
                 generation_time=generation_time))
     gcs_upload(bucket_name=bucket_name, source_file_name="{}/index.html".format(directory), destination_blob_name="index.html")
 
@@ -70,7 +70,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/errors/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("errors.html",
-                path="../",
+                path="../../",
                 generation_time=generation_time,
                 columns=unique_error_columns,
                 errors=unique_errors))
@@ -87,7 +87,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/errors/all.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("all_errors.html",
-                path="../",
+                path="../../",
                 generation_time=generation_time,
                 columns=all_error_columns,
                 errors=unique_errors))
@@ -97,7 +97,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/nodes/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("nodes.html",
-                path="../",
+                path="../../",
                 generation_time=generation_time,
                 columns=report_columns,
                 nodes=nodes))
@@ -142,7 +142,7 @@ def output_html(inventory, directory, bucket_name):
         with open(path, "w", encoding="utf-8") as html:
             html.write(
                 render_template("node.html",
-                    path="../",
+                    path="../../",
                     generation_time=generation_time,
                     columns=all_columns[1:],
                     node=node))
@@ -152,7 +152,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/roles/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("roles.html",
-                path="../",
+                path="../../",
                 generation_time=generation_time,
                 roles=inventory.sorted_roles()))
     gcs_upload(bucket_name=bucket_name, source_file_name="{}/roles/index.html".format(directory), destination_blob_name="roles/index.html")
@@ -164,7 +164,7 @@ def output_html(inventory, directory, bucket_name):
     with open("{}/services/index.html".format(directory), "w", encoding="utf-8") as html:
         html.write(
             render_template("services.html",
-                path="../",
+                path="../../",
                 generation_time=generation_time,
                 services=sorted_services))
     gcs_upload(bucket_name=bucket_name, source_file_name="{}/services/index.html".format(directory), destination_blob_name="services/index.html")
@@ -175,7 +175,7 @@ def output_html(inventory, directory, bucket_name):
         with open(path, "w", encoding="utf-8") as html:
             html.write(
                 render_template("service.html",
-                    path="../",
+                    path="../../",
                     generation_time=generation_time,
                     service=service))
         gcs_upload(bucket_name=bucket_name, source_file_name="{}/services/{}.html".format(directory, service["class_name"]), destination_blob_name="services/{}.html".format(service["class_name"]))
@@ -238,6 +238,10 @@ def gcs_upload(bucket_name, source_file_name, destination_blob_name):
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(destination_blob_name)
+
+    # WARNING: this is a workaround for a google-cloud-storage issue as reported on:
+    # https://github.com/googleapis/python-storage/issues/74
+    blob._chunk_size = 8388608  # 1024 * 1024 B * 16 = 8 MB
 
     blob.upload_from_filename(source_file_name)
     

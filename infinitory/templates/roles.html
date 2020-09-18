@@ -16,7 +16,7 @@
         <td>
           <ul>
           {% for node in nodes | sort(attribute="facts.fqdn") %}
-            <li><a href="../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
+            <li><a href="../../nodes/{{ node["certname"] }}.html">{{ node["facts"]["fqdn"] }}</a></li>
           {% endfor %}
           </ul>
         </td>

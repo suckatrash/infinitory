@@ -8,7 +8,7 @@ setuptools.setup(
     author = "Daniel Parks",
     author_email = "daniel.parks@puppet.com",
     url = "http://github.com/puppetlabs/infinitory",
-    long_description = open("README.rst").read(),
+    long_description = open("README.md").read(),
 
     classifiers = [
         "Development Status :: 3 - Alpha",
