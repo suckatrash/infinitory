@@ -6,3 +6,5 @@ __pycache__
 /output
 bin/
 /cache
+/infinitory-flask/templates
+/infinitory-flask/static
